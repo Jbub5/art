@@ -470,7 +470,7 @@ static jboolean ZygoteHooks_nativeZygoteLongSuspendOk([[maybe_unused]] JNIEnv* e
   return (isJitZygote || explicitlyDisabled) ? JNI_FALSE : JNI_TRUE;
 }
 
-static JNINativeMethod gMethods[] = {
+static const JNINativeMethod gMethods[] = {
   NATIVE_METHOD(ZygoteHooks, nativePreFork, "()J"),
   NATIVE_METHOD(ZygoteHooks, nativePostZygoteFork, "()V"),
   NATIVE_METHOD(ZygoteHooks, nativePostForkSystemServer, "(I)V"),
