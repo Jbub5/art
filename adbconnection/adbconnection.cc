@@ -183,8 +183,6 @@ void AdbConnectionDebuggerController::StartDebugger() {
   // The thread will also set up the jdwp tunnel if the process is debuggable.
   if (IsDebuggableOrProfilable()) {
     connection_->StartDebuggerThreads();
-  } else {
-    LOG(VERBOSE) << "Not starting debugger since process cannot load the jdwp agent.";
   }
 }
 
