@@ -151,6 +151,7 @@ Arm64FeaturesUniquePtr Arm64InstructionSetFeatures::IntersectWithHwcap() const {
 }
 
 Arm64FeaturesUniquePtr Arm64InstructionSetFeatures::FromBitmap(uint32_t bitmap) {
+  (void)bitmap;
   bool is_a53 = false;
   bool has_crc = true;
   bool has_lse = true;
