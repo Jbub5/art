@@ -51,9 +51,6 @@ Arm64FeaturesUniquePtr Arm64InstructionSetFeatures::FromVariant(
 
   // Look for variants that need a fix for a53 erratum 835769.
   static const char* arm64_variants_with_a53_835769_bug[] = {
-      // Pessimistically assume all generic CPUs are cortex-a53.
-      "default",
-      "generic",
       "cortex-a53",
       "cortex-a53.a57",
       "cortex-a53.a72",
@@ -66,44 +63,23 @@ Arm64FeaturesUniquePtr Arm64InstructionSetFeatures::FromVariant(
   static const char* arm64_variants_with_crc[] = {
       "default",
       "generic",
-      "cortex-a35",
-      "cortex-a53",
-      "cortex-a53.a57",
-      "cortex-a53.a72",
-      "cortex-a57",
-      "cortex-a72",
-      "cortex-a73",
       "cortex-a55",
       "cortex-a75",
-      "cortex-a76",
-      "exynos-m1",
-      "exynos-m2",
-      "exynos-m3",
-      "kryo",
-      "kryo385",
-      "kryo785",
   };
 
   static const char* arm64_variants_with_lse[] = {
       "cortex-a55",
       "cortex-a75",
-      "cortex-a76",
-      "kryo385",
-      "kryo785",
   };
 
   static const char* arm64_variants_with_fp16[] = {
       "cortex-a55",
       "cortex-a75",
-      "cortex-a76",
-      "kryo385",
-      "kryo785",
   };
 
   static const char* arm64_variants_with_dotprod[] = {
       "cortex-a55",
       "cortex-a75",
-      "cortex-a76",
   };
 
   bool needs_a53_835769_fix = FindVariantInArray(arm64_variants_with_a53_835769_bug,
@@ -135,18 +111,8 @@ Arm64FeaturesUniquePtr Arm64InstructionSetFeatures::FromVariant(
     // Check to see if this is an expected variant. `other_arm64_known_variants` contains the
     // variants which do *not* need a fix for a53 erratum 835769.
     static const char* other_arm64_known_variants[] = {
-        "cortex-a35",
         "cortex-a55",
         "cortex-a75",
-        "cortex-a76",
-        "exynos-m1",
-        "exynos-m2",
-        "exynos-m3",
-        "kryo",
-        "kryo300",
-        "kryo385",
-        "kryo785",
-        "oryon",
     };
     if (!FindVariantInArray(
             other_arm64_known_variants, arraysize(other_arm64_known_variants), variant)) {
@@ -185,12 +151,12 @@ Arm64FeaturesUniquePtr Arm64InstructionSetFeatures::IntersectWithHwcap() const {
 }
 
 Arm64FeaturesUniquePtr Arm64InstructionSetFeatures::FromBitmap(uint32_t bitmap) {
-  bool is_a53 = (bitmap & kA53Bitfield) != 0;
-  bool has_crc = (bitmap & kCRCBitField) != 0;
-  bool has_lse = (bitmap & kLSEBitField) != 0;
-  bool has_fp16 = (bitmap & kFP16BitField) != 0;
-  bool has_dotprod = (bitmap & kDotProdBitField) != 0;
-  bool has_sve = (bitmap & kSVEBitField) != 0;
+  bool is_a53 = false;
+  bool has_crc = true;
+  bool has_lse = true;
+  bool has_fp16 = true;
+  bool has_dotprod = true;
+  bool has_sve = false;
   return Arm64FeaturesUniquePtr(new Arm64InstructionSetFeatures(is_a53,
                                                                 is_a53,
                                                                 has_crc,
@@ -205,32 +171,32 @@ Arm64FeaturesUniquePtr Arm64InstructionSetFeatures::FromCppDefines() {
   // Arm C Language Extensions Documentation (ACLE).
   // https://developer.arm.com/docs/101028/latest
   bool needs_a53_835769_fix = false;
-  bool needs_a53_843419_fix = needs_a53_835769_fix;
-  bool has_crc = false;
-  bool has_lse = false;
-  bool has_fp16 = false;
-  bool has_dotprod = false;
+  bool needs_a53_843419_fix = false;
+  bool has_crc = true;
+  bool has_lse = true;
+  bool has_fp16 = true;
+  bool has_dotprod = true;
   bool has_sve = false;
 
-#if defined (__ARM_FEATURE_CRC32)
+//#if defined (__ARM_FEATURE_CRC32)
   has_crc = true;
-#endif
+//#endif
 
-#if defined (__ARM_FEATURE_ATOMICS)
+//#if defined (__ARM_FEATURE_ATOMICS)
   has_lse = true;
-#endif
+//#endif
 
-#if defined (__ARM_FEATURE_FP16_SCALAR_ARITHMETIC) || defined (__ARM_FEATURE_FP16_VECTOR_ARITHMETIC)
+//#if defined (__ARM_FEATURE_FP16_SCALAR_ARITHMETIC) || defined (__ARM_FEATURE_FP16_VECTOR_ARITHMETIC)
   has_fp16 = true;
-#endif
+//#endif
 
-#if defined (__ARM_FEATURE_DOTPROD)
+//#if defined (__ARM_FEATURE_DOTPROD)
   has_dotprod = true;
-#endif
+//#endif
 
-#if defined (__ARM_FEATURE_SVE)
-  has_sve = true;
-#endif
+//#if defined (__ARM_FEATURE_SVE)
+  has_sve = false;
+//#endif
 
   return Arm64FeaturesUniquePtr(new Arm64InstructionSetFeatures(needs_a53_835769_fix,
                                                                 needs_a53_843419_fix,
@@ -423,6 +389,7 @@ Arm64InstructionSetFeatures::AddFeaturesFromSplitString(
       has_crc = true;
       has_lse = true;
       has_fp16 = true;
+      has_dotprod = true;
     } else if (feature == "armv8.3-a") {
       has_crc = true;
       has_lse = true;
