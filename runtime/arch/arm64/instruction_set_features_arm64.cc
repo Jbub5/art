@@ -72,7 +72,6 @@ Arm64FeaturesUniquePtr Arm64InstructionSetFeatures::FromVariant(
       "cortex-a53.a57",
       "cortex-a53.a72",
       "cortex-a57",
-      "cortex-a710",
       "cortex-a72",
       "cortex-a73",
       "cortex-a55",
@@ -89,7 +88,6 @@ Arm64FeaturesUniquePtr Arm64InstructionSetFeatures::FromVariant(
   static const char* arm64_variants_with_lse[] = {
       "cortex-a510",
       "cortex-a55",
-      "cortex-a710",
       "cortex-a75",
       "cortex-a76",
       "kryo385",
@@ -99,7 +97,6 @@ Arm64FeaturesUniquePtr Arm64InstructionSetFeatures::FromVariant(
   static const char* arm64_variants_with_fp16[] = {
       "cortex-a510",
       "cortex-a55",
-      "cortex-a710",
       "cortex-a75",
       "cortex-a76",
       "kryo385",
@@ -109,7 +106,6 @@ Arm64FeaturesUniquePtr Arm64InstructionSetFeatures::FromVariant(
   static const char* arm64_variants_with_dotprod[] = {
       "cortex-a510",
       "cortex-a55",
-      "cortex-a710",
       "cortex-a75",
       "cortex-a76",
   };
@@ -146,7 +142,6 @@ Arm64FeaturesUniquePtr Arm64InstructionSetFeatures::FromVariant(
         "cortex-a35",
         "cortex-a510",
         "cortex-a55",
-        "cortex-a710",
         "cortex-a75",
         "cortex-a76",
         "exynos-m1",
