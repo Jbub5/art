@@ -83,7 +83,6 @@ Arm64FeaturesUniquePtr Arm64InstructionSetFeatures::FromVariant(
       "exynos-m3",
       "kryo",
       "kryo385",
-      "kryo485",
       "kryo785",
   };
 
@@ -94,7 +93,6 @@ Arm64FeaturesUniquePtr Arm64InstructionSetFeatures::FromVariant(
       "cortex-a75",
       "cortex-a76",
       "kryo385",
-      "kryo485",
       "kryo785",
   };
 
@@ -105,7 +103,6 @@ Arm64FeaturesUniquePtr Arm64InstructionSetFeatures::FromVariant(
       "cortex-a75",
       "cortex-a76",
       "kryo385",
-      "kryo485",
       "kryo785",
   };
 
@@ -115,7 +112,6 @@ Arm64FeaturesUniquePtr Arm64InstructionSetFeatures::FromVariant(
       "cortex-a710",
       "cortex-a75",
       "cortex-a76",
-      "kryo485",
   };
 
   bool needs_a53_835769_fix = FindVariantInArray(arm64_variants_with_a53_835769_bug,
@@ -159,7 +155,6 @@ Arm64FeaturesUniquePtr Arm64InstructionSetFeatures::FromVariant(
         "kryo",
         "kryo300",
         "kryo385",
-        "kryo485",
         "kryo785",
         "oryon",
     };

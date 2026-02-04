@@ -67,7 +67,6 @@ ArmFeaturesUniquePtr ArmInstructionSetFeatures::FromVariant(
       "exynos-m1",
       "kryo",
       "kryo385",
-      "kryo485",
       "kryo785",
   };
   bool has_armv8a = FindVariantInArray(arm_variants_with_armv8a,
