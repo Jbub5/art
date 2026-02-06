@@ -45,6 +45,9 @@ using android::base::StringPrintf;
 
 Arm64FeaturesUniquePtr Arm64InstructionSetFeatures::FromVariant(
     const std::string& variant, std::string* error_msg) {
+  (void)variant;
+  (void)error_msg;
+
   // The CPU variant string is passed to ART through --instruction-set-variant option.
   // During build, such setting is from TARGET_CPU_VARIANT in device BoardConfig.mk, for example:
   //   TARGET_CPU_VARIANT := cortex-a75
@@ -68,66 +71,40 @@ Arm64FeaturesUniquePtr Arm64InstructionSetFeatures::FromVariant(
   };
 
   static const char* arm64_variants_with_lse[] = {
+      "default",
+      "generic",
       "cortex-a55",
       "cortex-a75",
   };
 
   static const char* arm64_variants_with_fp16[] = {
+      "default",
+      "generic",
       "cortex-a55",
       "cortex-a75",
   };
 
   static const char* arm64_variants_with_dotprod[] = {
+      "default",
+      "generic",
       "cortex-a55",
       "cortex-a75",
   };
 
-  bool needs_a53_835769_fix = FindVariantInArray(arm64_variants_with_a53_835769_bug,
-                                                 arraysize(arm64_variants_with_a53_835769_bug),
-                                                 variant);
+  bool needs_a53_835769_fix = false;
   // The variants that need a fix for 843419 are the same that need a fix for 835769.
-  bool needs_a53_843419_fix = needs_a53_835769_fix;
+  bool needs_a53_843419_fix = needs_a53_835769_fix = false;
 
-  bool has_crc = FindVariantInArray(arm64_variants_with_crc,
-                                    arraysize(arm64_variants_with_crc),
-                                    variant);
+  bool has_crc = true;
 
-  bool has_lse = FindVariantInArray(arm64_variants_with_lse,
-                                    arraysize(arm64_variants_with_lse),
-                                    variant);
+  bool has_lse = true;
 
-  bool has_fp16 = FindVariantInArray(arm64_variants_with_fp16,
-                                     arraysize(arm64_variants_with_fp16),
-                                     variant);
+  bool has_fp16 = true;
 
-  bool has_dotprod = FindVariantInArray(arm64_variants_with_dotprod,
-                                        arraysize(arm64_variants_with_dotprod),
-                                        variant);
+  bool has_dotprod = true;
 
   // Currently there are no cpu variants which support SVE.
   bool has_sve = false;
-
-  if (!needs_a53_835769_fix) {
-    // Check to see if this is an expected variant. `other_arm64_known_variants` contains the
-    // variants which do *not* need a fix for a53 erratum 835769.
-    static const char* other_arm64_known_variants[] = {
-        "cortex-a55",
-        "cortex-a75",
-    };
-    if (!FindVariantInArray(
-            other_arm64_known_variants, arraysize(other_arm64_known_variants), variant)) {
-      std::ostringstream os;
-      os << "Unexpected CPU variant for Arm64: " << variant << ".\n"
-         << "Known variants that need a fix for a53 erratum 835769: "
-         << android::base::Join(ArrayRef<const char* const>(arm64_variants_with_a53_835769_bug),
-                                ", ")
-         << ".\n"
-         << "Known variants that do not need a fix for a53 erratum 835769: "
-         << android::base::Join(ArrayRef<const char* const>(other_arm64_known_variants), ", ");
-      *error_msg = os.str();
-      return nullptr;
-    }
-  }
 
   return Arm64FeaturesUniquePtr(new Arm64InstructionSetFeatures(needs_a53_835769_fix,
                                                                 needs_a53_843419_fix,
@@ -143,11 +120,11 @@ Arm64FeaturesUniquePtr Arm64InstructionSetFeatures::IntersectWithHwcap() const {
   return Arm64FeaturesUniquePtr(new Arm64InstructionSetFeatures(
       fix_cortex_a53_835769_,
       fix_cortex_a53_843419_,
-      has_crc_ && hwcaps->has_crc_,
-      has_lse_ && hwcaps->has_lse_,
-      has_fp16_ && hwcaps->has_fp16_,
-      has_dotprod_ && hwcaps->has_dotprod_,
-      has_sve_ && hwcaps->has_sve_));
+      true, //has_crc_ && hwcaps->has_crc_,
+      true, //has_lse_ && hwcaps->has_lse_,
+      true, //has_fp16_ && hwcaps->has_fp16_,
+      true, //has_dotprod_ && hwcaps->has_dotprod_,
+      false)); //has_sve_ && hwcaps->has_sve_));
 }
 
 Arm64FeaturesUniquePtr Arm64InstructionSetFeatures::FromBitmap(uint32_t bitmap) {
@@ -216,20 +193,11 @@ Arm64FeaturesUniquePtr Arm64InstructionSetFeatures::FromCpuInfo() {
 Arm64FeaturesUniquePtr Arm64InstructionSetFeatures::FromHwcap() {
   bool needs_a53_835769_fix = false;  // No HWCAP for this.
   bool needs_a53_843419_fix = false;  // No HWCAP for this.
-  bool has_crc = false;
-  bool has_lse = false;
-  bool has_fp16 = false;
-  bool has_dotprod = false;
+  bool has_crc = true;
+  bool has_lse = true;
+  bool has_fp16 = true;
+  bool has_dotprod = true;
   bool has_sve = false;
-
-#if defined(ART_TARGET_ANDROID) && defined(__aarch64__)
-  uint64_t hwcaps = getauxval(AT_HWCAP);
-  has_crc = hwcaps & HWCAP_CRC32 ? true : false;
-  has_lse = hwcaps & HWCAP_ATOMICS ? true : false;
-  has_fp16 = hwcaps & HWCAP_FPHP ? true : false;
-  has_dotprod = hwcaps & HWCAP_ASIMDDP ? true : false;
-  has_sve = hwcaps & HWCAP_SVE ? true : false;
-#endif
 
   return Arm64FeaturesUniquePtr(new Arm64InstructionSetFeatures(needs_a53_835769_fix,
                                                                 needs_a53_843419_fix,
@@ -301,36 +269,12 @@ uint32_t Arm64InstructionSetFeatures::AsBitmap() const {
 
 std::string Arm64InstructionSetFeatures::GetFeatureString() const {
   std::string result;
-  if (fix_cortex_a53_835769_) {
-    result += "a53";
-  } else {
     result += "-a53";
-  }
-  if (has_crc_) {
     result += ",crc";
-  } else {
-    result += ",-crc";
-  }
-  if (has_lse_) {
     result += ",lse";
-  } else {
-    result += ",-lse";
-  }
-  if (has_fp16_) {
     result += ",fp16";
-  } else {
-    result += ",-fp16";
-  }
-  if (has_dotprod_) {
     result += ",dotprod";
-  } else {
-    result += ",-dotprod";
-  }
-  if (has_sve_) {
-    result += ",sve";
-  } else {
     result += ",-sve";
-  }
   return result;
 }
 
@@ -350,61 +294,14 @@ Arm64InstructionSetFeatures::AddFeaturesFromSplitString(
   // ARM Architecture Reference Manual ARMv8 document:
   // https://developer.arm.com/products/architecture/cpu-architecture/a-profile/docs/ddi0487/latest/
   // arm-architecture-reference-manual-armv8-for-armv8-a-architecture-profile/
-  bool is_a53 = fix_cortex_a53_835769_;
-  bool has_crc = has_crc_;
-  bool has_lse = has_lse_;
-  bool has_fp16 = has_fp16_;
-  bool has_dotprod = has_dotprod_;
-  bool has_sve = has_sve_;
-  for (const std::string& feature : features) {
-    DCHECK_EQ(android::base::Trim(feature), feature)
-        << "Feature name is not trimmed: '" << feature << "'";
-    if (feature == "a53") {
-      is_a53 = true;
-    } else if (feature == "-a53") {
-      is_a53 = false;
-    } else if (feature == "crc") {
-      has_crc = true;
-    } else if (feature == "-crc") {
-      has_crc = false;
-    } else if (feature == "lse") {
-      has_lse = true;
-    } else if (feature == "-lse") {
-      has_lse = false;
-    } else if (feature == "fp16") {
-      has_fp16 = true;
-    } else if (feature == "-fp16") {
-      has_fp16 = false;
-    } else if (feature == "dotprod") {
-      has_dotprod = true;
-    } else if (feature == "-dotprod") {
-      has_dotprod = false;
-    } else if (feature == "sve") {
-      has_sve = true;
-    } else if (feature == "-sve") {
-      has_sve = false;
-    } else if (feature == "armv8.1-a") {
-      has_crc = true;
-      has_lse = true;
-    } else if (feature == "armv8.2-a") {
-      has_crc = true;
-      has_lse = true;
-      has_fp16 = true;
-      has_dotprod = true;
-    } else if (feature == "armv8.3-a") {
-      has_crc = true;
-      has_lse = true;
-      has_fp16 = true;
-    } else if (feature == "armv8.4-a") {
-      has_crc = true;
-      has_lse = true;
-      has_fp16 = true;
-      has_dotprod = true;
-    } else {
-      *error_msg = StringPrintf("Unknown instruction set feature: '%s'", feature.c_str());
-      return nullptr;
-    }
-  }
+  bool is_a53 = false;
+  bool has_crc = true;
+  bool has_lse = true;
+  bool has_fp16 = true;
+  bool has_dotprod = true;
+  bool has_sve = false;
+  (void)features;
+  (void)error_msg;
   return std::unique_ptr<const InstructionSetFeatures>(
       new Arm64InstructionSetFeatures(is_a53,  // erratum 835769
                                       is_a53,  // erratum 843419
